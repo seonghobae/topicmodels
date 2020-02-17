@@ -45,12 +45,12 @@ most_likely <- function(x, which = c("terms", "topics"), k, threshold, ...)
     k <- min(ncol(post), k)
   }
   if (!missing(threshold)) {
-    most <- sapply(seq_len(nrow(post)), function(i) {
+    most <- future.apply::future_sapply(seq_len(nrow(post)), function(i) {
       index <- which(post[i,] > threshold)
       labels[index[index %in% order(post[i,], decreasing = TRUE)[seq_len(k)]]]
     }, ...)
   } else {
-    most <- sapply(seq_len(nrow(post)), function(i) 
+    most <- future.apply::future_sapply(seq_len(nrow(post)), function(i) 
                     labels[order(post[i,], decreasing = TRUE)[seq_len(k)]], ...)
   }
   if (is(most, "matrix")) {
@@ -84,7 +84,7 @@ function(object, ...) {
 })
 
 setMethod("logLik", signature(object="Gibbs_list"),
-function(object, ...) sapply(object@fitted, logLik))
+function(object, ...) future.apply::future_sapply(object@fitted, logLik))
 
 distHellinger <- function(x, y, ...) UseMethod("distHellinger")
 
@@ -130,9 +130,9 @@ get_terms <- function(...) terms(...)
 get_topics <- function(...) topics(...)
 
 ldaformat2dtm <- function(documents, vocab, omit_empty = TRUE) {
-  stm <- simple_triplet_matrix(i = rep(seq_along(documents), sapply(documents, ncol)),
-                               j = as.integer(unlist(lapply(documents, "[", 1, )) + 1L),
-                               v = as.integer(unlist(lapply(documents, "[", 2, ))),
+  stm <- simple_triplet_matrix(i = rep(seq_along(documents), future.apply::future_sapply(documents, ncol)),
+                               j = as.integer(unlist(future.apply::future_lapply(documents, "[", 1, )) + 1L),
+                               v = as.integer(unlist(future.apply::future_lapply(documents, "[", 2, ))),
                                nrow = length(documents),
                                ncol = length(vocab),
                                dimnames = list(names(documents), vocab))
@@ -145,7 +145,7 @@ ldaformat2dtm <- function(documents, vocab, omit_empty = TRUE) {
 dtm2ldaformat <- function(x, omit_empty = TRUE) {
   split.matrix <- 
     function (x, f, drop = FALSE, ...) 
-      lapply(split(seq_len(ncol(x)), f, drop = drop, ...),
+      future.apply::future_lapply(split(seq_len(ncol(x)), f, drop = drop, ...),
              function(ind) x[,ind, drop = FALSE])
 
   documents <- vector(mode = "list", length = nrow(x))
@@ -212,11 +212,11 @@ setMethod("perplexity", signature(object = "Gibbs_list", newdata = "simple_tripl
     if (estimate_theta) {
       CLASS <- strsplit(class(object@fitted[[1]]), "_")[[1]]
       if (missing(control)) {
-        control <- lapply(object@fitted, slot, "control")
+        control <- future.apply::future_lapply(object@fitted, slot, "control")
       } else {
         control <- rep(list(as(control, paste(class(object@fitted[[1]]), "control", sep = ""))), length(object@fitted))
       }
-      object@fitted <- lapply(seq_along(object@fitted), function(i) {
+      object@fitted <- future.apply::future_lapply(seq_along(object@fitted), function(i) {
         control[[i]]@estimate.beta <- FALSE
         control[[i]]@nstart <- 1L
         control[[i]]@iter <- control[[i]]@thin
@@ -225,21 +225,21 @@ setMethod("perplexity", signature(object = "Gibbs_list", newdata = "simple_tripl
                       model = object@fitted[[i]], control = control[[i]])
       })
     } else if (nrow(newdata) != nrow(object@fitted[[1]]@gamma)) stop("newdata needs to have the same number of documents")
-    logs <- sapply(object@fitted, function(z)
+    logs <- future.apply::future_sapply(object@fitted, function(z)
                    log(colSums(exp(z@beta[,newdata$j]) * t(z@gamma)[,newdata$i])))
   } else {
-    logs <- sapply(object@fitted, function(z)
+    logs <- future.apply::future_sapply(object@fitted, function(z)
                    log(colSums(exp(z@beta[,newdata$j])/z@k)))
   }
   exp(-sum(log(rowMeans(exp(logs))) * newdata$v)/sum(newdata$v))
 })
 
 setMethod("perplexity", signature(object = "list", newdata = "missing"), function(object, newdata, ...) {
-  if (any(!sapply(object, inherits, "VEM"))) stop("if newdata is missing only VEM objects can be used")
-  exp(-mean(sapply(object, logLik))/object[[1]]@n)
+  if (any(!future.apply::future_sapply(object, inherits, "VEM"))) stop("if newdata is missing only VEM objects can be used")
+  exp(-mean(future.apply::future_sapply(object, logLik))/object[[1]]@n)
 }) 
 
 setMethod("perplexity", signature(object = "list", newdata = "simple_triplet_matrix"), function(object, newdata, ...) {
-  perplexities <- sapply(object, perplexity, newdata = newdata, ...)
+  perplexities <- future.apply::future_sapply(object, perplexity, newdata = newdata, ...)
   exp(mean(log(perplexities)))
 })

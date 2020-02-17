@@ -28,7 +28,7 @@ build_graph <- function(x, lambda, and = TRUE) {
   if (!is(x, "CTM")) stop("x needs to be a fitted CTM object")
   gamma <- posterior(x)$topics
   x <- log(sweep(gamma, 1, gamma[,ncol(gamma)], "/"))
-  x <- (x - rowMeans(x))/apply(x, 1, sd)
+  x <- (x - rowMeans(x))/future.apply::future_apply(x, 1, sd)
   p <- ncol(x)
   Ihat <- Shat <- matrix(FALSE, p, p)
   for (j in 1:p) {

@@ -13,8 +13,8 @@ Description: Provides an interface to the C code for Latent Dirichlet
 	     for fitting LDA models using Gibbs sampling by Xuan-Hieu
 	     Phan and co-authors.
 Depends: R (>= 2.15.0)
-Imports: stats4, methods, modeltools, slam, tm (>= 0.6)
-Suggests: lasso2, lattice, lda, OAIHarvester, SnowballC,
+Imports: stats4, methods, modeltools, slam, tm (>= 0.6), lda, future.apply
+Suggests: lasso2, lattice, OAIHarvester, SnowballC,
         corpus.JSS.papers
 Additional_repositories: https://datacube.wu.ac.at
 SystemRequirements: GNU Scientific Library version >= 1.8, C++11

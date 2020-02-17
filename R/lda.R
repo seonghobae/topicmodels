@@ -38,7 +38,7 @@ LDA <- function(x, k, method = "VEM", control = NULL, model = NULL, ...)
   if(missing(method) && !missing(model))
     method <- paste(class(model), "fit", sep = ".")
   if(!is.function(method)) {
-    MATCH <- which(sapply(LDA_registry, function(x) length(grep(tolower(method), tolower(x)))) > 0)
+    MATCH <- which(future.apply::future_sapply(LDA_registry, function(x) length(grep(tolower(method), tolower(x)))) > 0)
     if (!length(MATCH) == 1)
       stop("'method' not specified correctly")
     method <- get(names(LDA_registry)[MATCH])
@@ -88,7 +88,7 @@ LDA_VEM.fit <- function(x, k, control = NULL, model = NULL, call, ...) {
                     documents = x$dimnames[[1]], terms = x$dimnames[[2]], n = as.integer(sum(x$v)))
   }
   if (control@best) {
-    MAX <- which.max(sapply(obj, logLik))
+    MAX <- which.max(future.apply::future_sapply(obj, logLik))
     if (length(MAX)) {
       obj <- obj[[MAX]]
     } else warning("problem selecting best fitting model")
@@ -183,16 +183,16 @@ LDA_Gibbs.fit <- function(x, k, control = NULL, model = NULL, call, seedwords = 
         obj[[i]][[j]] <- new(class(obj[[i]][[j]]), obj[[i]][[j]], call = call, control = CONTROL_i, seedwords = seedwords,
                              documents = x$dimnames[[1]], terms = x$dimnames[[2]], n = as.integer(sum(x$v)))
       }
-      if (control@best) obj[[i]] <- obj[[i]][[which.max(sapply(obj[[i]], logLik))]]
+      if (control@best) obj[[i]] <- obj[[i]][[which.max(future.apply::future_sapply(obj[[i]], logLik))]]
     } else if (control@best) obj[[i]] <- obj[[i]][[1]]
   }    
   if (control@best) {
-    MAX <- which.max(sapply(obj, logLik))
+    MAX <- which.max(future.apply::future_sapply(obj, logLik))
     if (length(MAX)) {
       obj <- obj[[MAX]]
     } else warning("no finite likelihood")
   } else {
-    obj <- lapply(obj, function(x) new("Gibbs_list", fitted = x))
+    obj <- future.apply::future_lapply(obj, function(x) new("Gibbs_list", fitted = x))
     if (control@nstart == 1) obj <- obj[[1]]
   }
   obj

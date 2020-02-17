@@ -1,6 +1,8 @@
 useDynLib("topicmodels", .registration = TRUE, .fixes = "C_")
 
 import("methods")
+import("future.apply")
+import("lda")
 importFrom("modeltools", "posterior")
 importFrom("stats", "terms", "sd", "coef")
 importFrom("stats4", "logLik")

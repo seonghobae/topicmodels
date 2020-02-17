@@ -28,13 +28,13 @@ setAs("list", "OPTcontrol", function(from, to) .list2control(from, to))
 
   prototype <- new(to)
   slotTypes <- getClass(to)@slots[p]
-  from <- lapply(seq_along(from), function(i) {
+  from <- future.apply::future_lapply(seq_along(from), function(i) {
     if (slotTypes[[i]] == "OPTcontrol") {
       defaults <- slot(prototype, s[p][i])
       miss <- which(!slotNames(defaults) %in% names(from[[i]]))
       if (length(miss) > 0) {
         from[[i]] <- c(from[[i]],
-                       sapply(slotNames(defaults)[miss],
+                       future.apply::future_sapply(slotNames(defaults)[miss],
                               function(s) slot(defaults, s), simplify = FALSE))
       }
     }

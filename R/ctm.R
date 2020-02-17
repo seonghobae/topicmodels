@@ -24,7 +24,7 @@ CTM <- function(x, k, method = "VEM", control = NULL, model = NULL, ...) {
   if(missing(method) && !missing(model))
     method <- paste(class(model), "fit", sep = ".")
   if(!is.function(method)) {
-    MATCH <- which(sapply(CTM_registry, function(x) length(grep(tolower(method), tolower(x)))) > 0)
+    MATCH <- which(future.apply::future_sapply(CTM_registry, function(x) length(grep(tolower(method), tolower(x)))) > 0)
     if (!length(MATCH) == 1)
       stop("'method' not specified correctly")
     method <- get(names(CTM_registry)[MATCH])
@@ -72,7 +72,7 @@ CTM_VEM.fit <- function(x, k, control = NULL, model = NULL, call, ...) {
                     documents = x$dimnames[[1]], terms = x$dimnames[[2]], n = as.integer(sum(x$v)))
   }
   if (control@best) {
-    MAX <- which.max(sapply(obj, logLik))
+    MAX <- which.max(future.apply::future_sapply(obj, logLik))
     if (length(MAX)) {
       obj <- obj[[MAX]]
     } else warning("no finite likelihood")
